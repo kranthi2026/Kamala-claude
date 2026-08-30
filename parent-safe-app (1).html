@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0b6e4f">
+<title>Parent Safe</title>
+<style>
+  :root{
+    --teal-deep:#0b6e4f;
+    --green:#1fa055;
+    --green-light:#e7f6ee;
+    --green-border:#bfe6d1;
+    --red:#a83232;
+    --ink:#1c2b24;
+    --ink-soft:#5b6b63;
+    --paper:#ffffff;
+    --status-bg:#f3f8f5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI', Roboto, -apple-system, sans-serif;
+    background:var(--paper);
+    overscroll-behavior:none;
+  }
+  #app{
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+  .screen{
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+  .hidden{ display:none !important; }
+
+  .header{
+    background:var(--teal-deep);
+    padding:16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-shrink:0;
+  }
+  .header .icon{
+    width:42px;height:42px;
+    background:rgba(255,255,255,0.15);
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .header .icon svg{width:24px;height:24px;stroke:#fff;}
+  .header .titles{flex:1;min-width:0;}
+  .header h1{color:#fff;font-size:18px;font-weight:700;line-height:1.15;}
+  .header p{color:rgba(255,255,255,0.8);font-size:11.5px;margin-top:2px;line-height:1.2;}
+  .icon-btn{
+    width:36px;height:36px;
+    background:rgba(255,255,255,0.15);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    border:none;
+    cursor:pointer;
+  }
+  .icon-btn svg{width:19px;height:19px;stroke:#fff;}
+
+  .status-strip{
+    background:var(--status-bg);
+    padding:10px 16px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px solid #e2e8e4;
+    flex-shrink:0;
+  }
+  .status-strip b{color:var(--ink);font-weight:600;}
+
+  .content{
+    flex:1;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    padding-bottom:24px;
+  }
+
+  .section-label{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+
+  .contact-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .contact-card{
+    border:1.5px solid #e2e8e4;
+    border-radius:12px;
+    padding:11px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    background:none;
+    text-align:left;
+    width:100%;
+    font-family:inherit;
+  }
+  .contact-card.selected{
+    border-color:var(--green);
+    background:var(--green-light);
+  }
+  .contact-card .avatar{
+    width:34px;height:34px;
+    border-radius:50%;
+    background:var(--green-light);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .contact-card.selected .avatar{background:#d4f0e0;}
+  .contact-card .avatar svg{width:17px;height:17px;stroke:var(--green);}
+  .contact-card .info{min-width:0;flex:1;}
+  .contact-card .info .name{font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .contact-card .info .sub{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .contact-card .radio{
+    width:16px;height:16px;
+    border-radius:50%;
+    border:2px solid #c7d3cc;
+    flex-shrink:0;
+  }
+  .contact-card.selected .radio{
+    border-color:var(--green);
+    background:var(--green);
+    box-shadow:inset 0 0 0 3px #fff;
+  }
+  .empty-note{
+    font-size:12px;
+    color:var(--ink-soft);
+    padding:14px;
+    text-align:center;
+    border:1.5px dashed #dde5e0;
+    border-radius:12px;
+  }
+  .empty-note button{
+    display:block;
+    margin:10px auto 0;
+    background:var(--green);
+    color:#fff;
+    border:none;
+    padding:9px 16px;
+    border-radius:9px;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .safe-wrap{
+    display:flex;
+    justify-content:center;
+    padding:6px 0;
+  }
+  .safe-button{
+    width:160px;height:160px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #29b566, #148047 75%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    color:#fff;
+    text-align:center;
+    padding:14px;
+    box-shadow:0 8px 20px rgba(31,160,85,0.4), 0 0 0 8px rgba(31,160,85,0.08);
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .safe-button:active{ transform:scale(0.97); }
+  .safe-button .check{
+    width:34px;height:34px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.22);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    margin-bottom:2px;
+  }
+  .safe-button .check svg{width:19px;height:19px;stroke:#fff;stroke-width:3;}
+  .safe-button h2{font-size:15px;font-weight:800;line-height:1;}
+  .safe-button p{font-size:9px;opacity:0.9;margin-top:4px;line-height:1.25;}
+
+  .action-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .action-btn{
+    border-radius:12px;
+    padding:13px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-size:13px;
+    font-weight:700;
+    border:1.5px solid transparent;
+    cursor:pointer;
+    font-family:inherit;
+    text-decoration:none;
+  }
+  .action-btn svg{width:18px;height:18px;flex-shrink:0;}
+  .action-btn.emergency{background:var(--red);color:#fff;}
+  .action-btn.emergency svg{stroke:#fff;}
+  .action-btn.whatsapp{background:var(--green-light);color:var(--green);border-color:var(--green-border);}
+  .action-btn.whatsapp svg{stroke:var(--green);}
+  .action-btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+  .toast{
+    position:fixed;
+    left:16px;right:16px;bottom:20px;
+    background:var(--ink);
+    color:#fff;
+    padding:12px 16px;
+    border-radius:12px;
+    font-size:13px;
+    text-align:center;
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    z-index:50;
+    transition:opacity .25s, transform .25s;
+  }
+  .toast.hidden{ opacity:0; transform:translateY(10px); pointer-events:none; }
+
+  .footer{
+    margin-top:auto;
+    padding-top:8px;
+    text-align:center;
+  }
+  .footer p{font-size:10px;color:var(--ink-soft);line-height:1.4;}
+
+  /* --- setup / list screen --- */
+  .setup-header{
+    background:var(--teal-deep);
+    padding:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .back-btn{
+    width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+  .back-btn svg{width:20px;height:20px;stroke:#fff;}
+  .setup-header h1{color:#fff;font-size:16.5px;font-weight:700;flex:1;}
+
+  .setup-content{
+    flex:1;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .contact-list-item{
+    border:1.5px solid #e2e8e4;
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .contact-list-item .avatar{
+    width:36px;height:36px;
+    border-radius:50%;
+    background:var(--green-light);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .contact-list-item .avatar svg{width:18px;height:18px;stroke:var(--green);}
+  .contact-list-item .info{flex:1;min-width:0;}
+  .contact-list-item .info .name{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .contact-list-item .info .num{font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .contact-list-item .edit-btn{
+    width:32px;height:32px;
+    border-radius:9px;
+    background:var(--green-light);
+    border:none;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .contact-list-item .edit-btn svg{width:15px;height:15px;stroke:var(--green);}
+
+  .add-contact-btn{
+    border:1.5px dashed var(--green-border);
+    background:var(--green-light);
+    color:var(--green);
+    border-radius:12px;
+    padding:12px;
+    font-size:13px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .add-contact-btn svg{width:16px;height:16px;stroke:var(--green);}
+
+  /* --- add/edit contact form screen --- */
+  .form-card{
+    border:1.5px solid #e2e8e4;
+    border-radius:14px;
+    padding:14px;
+  }
+  .form-card .form-title{
+    font-size:13px;
+    font-weight:800;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .form-card .form-title .dot{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--green);
+    flex-shrink:0;
+  }
+  .field{ margin-bottom:12px; }
+  .field:last-of-type{ margin-bottom:0; }
+  .field label{
+    display:block;
+    font-size:10.5px;
+    font-weight:700;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-bottom:5px;
+  }
+  .input-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border:1.5px solid #dde5e0;
+    border-radius:10px;
+    padding:11px 12px;
+    background:#fafcfb;
+  }
+  .input-wrap svg{width:16px;height:16px;stroke:var(--ink-soft);flex-shrink:0;}
+  .input-wrap input{
+    border:none;
+    background:none;
+    outline:none;
+    font-size:14px;
+    color:var(--ink);
+    width:100%;
+    font-family:inherit;
+  }
+  .input-wrap input::placeholder{color:#a9b5ae;}
+
+  .phone-row{
+    display:flex;
+    gap:8px;
+  }
+  .cc-select{
+    flex-shrink:0;
+    width:92px;
+    border:1.5px solid #dde5e0;
+    border-radius:10px;
+    padding:11px 6px;
+    background:#fafcfb;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    outline:none;
+  }
+  .input-wrap.grow{ flex:1; min-width:0; }
+  .cc-other{
+    margin-top:8px;
+    width:100%;
+    border:1.5px solid #dde5e0;
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    outline:none;
+    background:#fafcfb;
+  }
+  .cc-other::placeholder{color:#a9b5ae;}
+
+  .same-toggle{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:12px 0;
+    padding-top:12px;
+    border-top:1px dashed #e2e8e4;
+    cursor:pointer;
+  }
+  .checkbox{
+    width:18px;height:18px;
+    border-radius:5px;
+    border:2px solid #c7d3cc;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .checkbox.checked{ background:var(--green); border-color:var(--green); }
+  .checkbox svg{width:11px;height:11px;stroke:#fff;stroke-width:3;display:none;}
+  .checkbox.checked svg{display:block;}
+  .same-toggle span{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+
+  .wa-field{ opacity:0.4; transition:opacity .2s; }
+  .wa-field .input-wrap{ background:#f2f4f3; }
+
+  .hint{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    line-height:1.4;
+    padding:0 2px;
+  }
+
+  .btn-row{ display:flex; gap:10px; }
+  .save-btn{
+    flex:1;
+    background:var(--green);
+    color:#fff;
+    text-align:center;
+    padding:14px;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:800;
+    box-shadow:0 6px 14px rgba(31,160,85,0.3);
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .delete-btn{
+    background:#fbeaea;
+    color:var(--red);
+    text-align:center;
+    padding:14px;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:800;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .error-msg{
+    background:#fbeaea;
+    color:var(--red);
+    font-size:12px;
+    font-weight:600;
+    padding:10px 12px;
+    border-radius:10px;
+    display:none;
+  }
+  .error-msg.show{ display:block; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ MAIN SCREEN ============ -->
+  <div class="screen" id="mainScreen">
+    <div class="header">
+      <div class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <div class="titles">
+        <h1>Parent Safe</h1>
+        <p>Safety check-ins for elderly &amp; trusted contacts</p>
+      </div>
+      <button class="icon-btn" id="openSetupBtn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+      </button>
+    </div>
+
+    <div class="status-strip">
+      <span>Status</span>
+      <span id="statusText"><b>Not sent yet</b></span>
+    </div>
+
+    <div class="content">
+
+      <div>
+        <div class="section-label">Send message to</div>
+        <div id="contactListArea"></div>
+      </div>
+
+      <div class="safe-wrap">
+        <button class="safe-button" id="iAmSafeBtn">
+          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <h2>I am Safe</h2>
+          <p>Tell my contact all is okay</p>
+        </button>
+      </div>
+
+      <div class="action-grid">
+        <a class="action-btn emergency" href="tel:108">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+          Call 108
+        </a>
+        <button class="action-btn whatsapp" id="waBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+          WhatsApp
+        </button>
+      </div>
+
+      <div class="footer">
+        <p>Parent Safe helps you share your well-being with trusted contacts.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONTACT LIST (SETTINGS) SCREEN ============ -->
+  <div class="screen hidden" id="listScreen">
+    <div class="setup-header">
+      <button class="back-btn" id="closeListBtn" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h1>Manage Contacts</h1>
+    </div>
+    <div class="setup-content" id="contactListEditArea"></div>
+  </div>
+
+  <!-- ============ ADD/EDIT CONTACT FORM SCREEN ============ -->
+  <div class="screen hidden" id="formScreen">
+    <div class="setup-header">
+      <button class="back-btn" id="closeFormBtn" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h1 id="formTitle">Add Contact</h1>
+    </div>
+
+    <div class="setup-content">
+      <div class="error-msg" id="formError"></div>
+
+      <div class="form-card">
+        <div class="form-title"><span class="dot"></span>Contact name</div>
+        <div class="field">
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+            <input type="text" id="nameInput" placeholder="e.g. Mom">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-title"><span class="dot"></span>Phone &amp; WhatsApp</div>
+        <p class="hint" style="margin-bottom:12px;">Fill in at least one — a phone number for calls, a WhatsApp number for messages, or both.</p>
+
+        <div class="field">
+          <label>Phone Number (for calls) — optional</label>
+          <div class="phone-row">
+            <select class="cc-select" id="phoneCC">
+              <option value="" selected>Code</option>
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+971">🇦🇪 +971</option>
+              <option value="+65">🇸🇬 +65</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+81">🇯🇵 +81</option>
+              <option value="+86">🇨🇳 +86</option>
+              <option value="+other">Other</option>
+            </select>
+            <div class="input-wrap grow">
+              <input type="tel" id="phoneInput" placeholder="98765 43210">
+            </div>
+          </div>
+          <input type="text" id="phoneCCOther" class="cc-other hidden" placeholder="Enter country code, e.g. +55">
+        </div>
+
+        <div class="same-toggle" id="sameToggle">
+          <div class="checkbox" id="sameCheckbox"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <span>WhatsApp number is the same as phone</span>
+        </div>
+
+        <div class="field wa-field" id="waField">
+          <label>WhatsApp Number — optional</label>
+          <div class="phone-row">
+            <select class="cc-select" id="waCC">
+              <option value="" selected>Code</option>
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+971">🇦🇪 +971</option>
+              <option value="+65">🇸🇬 +65</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+81">🇯🇵 +81</option>
+              <option value="+86">🇨🇳 +86</option>
+              <option value="+other">Other</option>
+            </select>
+            <div class="input-wrap grow">
+              <input type="tel" id="waInput" placeholder="98765 43210">
+            </div>
+          </div>
+          <input type="text" id="waCCOther" class="cc-other hidden" placeholder="Enter country code, e.g. +55">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="save-btn" id="saveBtn">Save Contact</button>
+      </div>
+      <button class="delete-btn hidden" id="deleteBtn">Delete Contact</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script>
+  // ---------- Storage ----------
+  const STORAGE_KEY = 'parentSafeContacts';
+  const SELECTED_KEY = 'parentSafeSelected';
+
+  function loadContacts(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      console.error('Failed to load contacts', e);
+      return [];
+    }
+  }
+  function saveContacts(list){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+  function loadSelected(){
+    return localStorage.getItem(SELECTED_KEY) || null;
+  }
+  function saveSelected(id){
+    localStorage.setItem(SELECTED_KEY, id);
+  }
+
+  let contacts = loadContacts();
+  let selectedId = loadSelected();
+  let editingId = null; // null = adding new
+
+  // ---------- Utilities ----------
+  function cleanPhone(v){
+    return (v || '').replace(/[^\d+]/g, '');
+  }
+  function digitsOnly(v){
+    return (v || '').replace(/\D/g, '');
+  }
+  function uid(){
+    return 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  }
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.add('hidden'), 2600);
+  }
+  function personIcon(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
+  }
+
+  // ---------- Screen navigation ----------
+  const screens = {
+    main: document.getElementById('mainScreen'),
+    list: document.getElementById('listScreen'),
+    form: document.getElementById('formScreen'),
+  };
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.add('hidden'));
+    screens[name].classList.remove('hidden');
+    window.scrollTo(0,0);
+  }
+
+  // ---------- Render: Main screen contact picker ----------
+  function renderMainContacts(){
+    const area = document.getElementById('contactListArea');
+    area.innerHTML = '';
+
+    if(contacts.length === 0){
+      area.innerHTML = `
+        <div class="empty-note">
+          No contacts added yet.
+          <button id="emptyAddBtn">+ Add a contact</button>
+        </div>`;
+      document.getElementById('emptyAddBtn').addEventListener('click', () => openForm(null));
+      updateActionButtons();
+      return;
+    }
+
+    // ensure a valid selection
+    if(!selectedId || !contacts.find(c => c.id === selectedId)){
+      selectedId = contacts[0].id;
+      saveSelected(selectedId);
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'contact-grid';
+
+    contacts.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'contact-card' + (c.id === selectedId ? ' selected' : '');
+      const sub = c.phone || c.whatsapp || 'No number';
+      btn.innerHTML = `
+        <div class="radio"></div>
+        <div class="avatar">${personIcon()}</div>
+        <div class="info">
+          <div class="name">${escapeHtml(c.name)}</div>
+          <div class="sub">${escapeHtml(sub)}</div>
+        </div>`;
+      btn.addEventListener('click', () => {
+        selectedId = c.id;
+        saveSelected(selectedId);
+        renderMainContacts();
+      });
+      grid.appendChild(btn);
+    });
+
+    area.appendChild(grid);
+    updateActionButtons();
+  }
+
+  function updateActionButtons(){
+    const selected = contacts.find(c => c.id === selectedId);
+    const waBtn = document.getElementById('waBtn');
+
+    const waNumber = selected ? (selected.whatsapp || selected.phone) : null;
+    if(waNumber){
+      waBtn.disabled = false;
+      waBtn.onclick = () => openWhatsapp(waNumber, selected.name);
+    }else{
+      waBtn.disabled = true;
+      waBtn.onclick = null;
+    }
+  }
+
+  function openWhatsapp(number, name){
+    const digits = digitsOnly(number);
+    const msg = encodeURIComponent("Hi " + (name || '') + ", I am safe.");
+    window.open('https://wa.me/' + digits + '?text=' + msg, '_blank');
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  const LAST_SENT_KEY = 'parentSafeLastSent';
+
+  function formatSentTime(ts){
+    const d = new Date(ts);
+    const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const date = d.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    return time + ', ' + date;
+  }
+
+  function renderStatus(){
+    const raw = localStorage.getItem(LAST_SENT_KEY);
+    const statusEl = document.getElementById('statusText');
+    if(!raw){
+      statusEl.innerHTML = '<b>Not sent yet</b>';
+      return;
+    }
+    try{
+      const { name, ts } = JSON.parse(raw);
+      statusEl.innerHTML = '<b>Sent to ' + escapeHtml(name) + ' at ' + formatSentTime(ts) + '</b>';
+    }catch(e){
+      statusEl.innerHTML = '<b>Not sent yet</b>';
+    }
+  }
+
+  // ---------- "I am Safe" button ----------
+  document.getElementById('iAmSafeBtn').addEventListener('click', () => {
+    const selected = contacts.find(c => c.id === selectedId);
+    if(!selected){
+      showToast('Add a contact first');
+      openList();
+      return;
+    }
+    const waNumber = selected.whatsapp || selected.phone;
+    if(waNumber){
+      openWhatsapp(waNumber, selected.name);
+    }
+    localStorage.setItem(LAST_SENT_KEY, JSON.stringify({ name: selected.name, ts: Date.now() }));
+    renderStatus();
+    showToast('Marked as safe — message opened');
+  });
+
+  // ---------- Settings / list screen ----------
+  document.getElementById('openSetupBtn').addEventListener('click', openList);
+  document.getElementById('closeListBtn').addEventListener('click', () => {
+    renderMainContacts();
+    showScreen('main');
+  });
+
+  function openList(){
+    renderContactListEdit();
+    showScreen('list');
+  }
+
+  function renderContactListEdit(){
+    const area = document.getElementById('contactListEditArea');
+    area.innerHTML = '';
+
+    contacts.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'contact-list-item';
+      const sub = c.phone || c.whatsapp || 'No number added';
+      item.innerHTML = `
+        <div class="avatar">${personIcon()}</div>
+        <div class="info">
+          <div class="name">${escapeHtml(c.name)}</div>
+          <div class="num">${escapeHtml(sub)}</div>
+        </div>
+        <button class="edit-btn" aria-label="Edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>`;
+      item.querySelector('.edit-btn').addEventListener('click', () => openForm(c.id));
+      area.appendChild(item);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-contact-btn';
+    addBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Add Contact`;
+    addBtn.addEventListener('click', () => openForm(null));
+    area.appendChild(addBtn);
+  }
+
+  // ---------- Add / edit form ----------
+  const nameInput = document.getElementById('nameInput');
+  const phoneInput = document.getElementById('phoneInput');
+  const waInput = document.getElementById('waInput');
+  const phoneCC = document.getElementById('phoneCC');
+  const waCC = document.getElementById('waCC');
+  const phoneCCOther = document.getElementById('phoneCCOther');
+  const waCCOther = document.getElementById('waCCOther');
+  const sameToggle = document.getElementById('sameToggle');
+  const sameCheckbox = document.getElementById('sameCheckbox');
+  const waField = document.getElementById('waField');
+  const formError = document.getElementById('formError');
+  const deleteBtn = document.getElementById('deleteBtn');
+  let sameNumber = false;
+
+  function setupCCOther(select, otherInput){
+    select.addEventListener('change', () => {
+      if(select.value === '+other'){
+        otherInput.classList.remove('hidden');
+        otherInput.focus();
+      }else{
+        otherInput.classList.add('hidden');
+      }
+    });
+  }
+  setupCCOther(phoneCC, phoneCCOther);
+  setupCCOther(waCC, waCCOther);
+
+  function getCC(select, otherInput){
+    if(select.value === '+other'){
+      const v = otherInput.value.trim();
+      return v ? (v.startsWith('+') ? v : ('+' + v)) : '';
+    }
+    return select.value; // '' if nothing chosen
+  }
+
+  // split a full E.164-ish number like "+919876543210" into {cc, rest}
+  const KNOWN_CCS = ['+91','+1','+44','+61','+971','+65','+49','+33','+81','+86'];
+  function splitNumber(full){
+    if(!full) return { cc: '', rest: '' };
+    const known = KNOWN_CCS.find(c => full.startsWith(c));
+    if(known){
+      return { cc: known, rest: full.slice(known.length).trim() };
+    }
+    // unknown country code - extract leading +digits as "other"
+    const m = full.match(/^(\+\d{1,4})(.*)$/);
+    if(m){
+      return { cc: 'other', rest: m[2].trim(), otherValue: m[1] };
+    }
+    return { cc: '', rest: full };
+  }
+
+  function setSameNumber(val){
+    sameNumber = val;
+    sameCheckbox.classList.toggle('checked', sameNumber);
+    waField.style.opacity = sameNumber ? '0.4' : '1';
+    waInput.disabled = sameNumber;
+    waCC.disabled = sameNumber;
+    waInput.placeholder = sameNumber ? 'Same as phone number' : '98765 43210';
+    if(sameNumber){ waInput.value = ''; waCCOther.classList.add('hidden'); }
+  }
+
+  sameToggle.addEventListener('click', () => setSameNumber(!sameNumber));
+
+  document.getElementById('closeFormBtn').addEventListener('click', () => {
+    openList();
+  });
+
+  function openForm(id){
+    editingId = id;
+    formError.classList.remove('show');
+    formError.textContent = '';
+
+    if(id){
+      const c = contacts.find(x => x.id === id);
+      document.getElementById('formTitle').textContent = 'Edit Contact';
+      nameInput.value = c.name || '';
+
+      const p = splitNumber(c.phone);
+      if(p.cc === 'other'){
+        phoneCC.value = '+other';
+        phoneCCOther.value = p.otherValue;
+        phoneCCOther.classList.remove('hidden');
+      }else{
+        phoneCC.value = p.cc; // '' falls back to the blank "Code" option
+        phoneCCOther.classList.add('hidden');
+      }
+      phoneInput.value = p.rest;
+
+      const sameChecked = !!(c.phone && c.whatsapp && c.phone === c.whatsapp);
+      setSameNumber(sameChecked);
+      if(!sameChecked && c.whatsapp){
+        const w = splitNumber(c.whatsapp);
+        if(w.cc === 'other'){
+          waCC.value = '+other';
+          waCCOther.value = w.otherValue;
+          waCCOther.classList.remove('hidden');
+        }else{
+          waCC.value = w.cc;
+        }
+        waInput.value = w.rest;
+      }
+      deleteBtn.classList.remove('hidden');
+      deleteBtn.onclick = () => {
+        if(confirm('Delete ' + c.name + '?')){
+          contacts = contacts.filter(x => x.id !== id);
+          saveContacts(contacts);
+          if(selectedId === id){ selectedId = contacts.length ? contacts[0].id : null; saveSelected(selectedId || ''); }
+          showToast('Contact deleted');
+          openList();
+        }
+      };
+    }else{
+      document.getElementById('formTitle').textContent = 'Add Contact';
+      nameInput.value = '';
+      phoneInput.value = '';
+      waInput.value = '';
+      phoneCC.value = '';
+      waCC.value = '';
+      phoneCCOther.value = '';
+      waCCOther.value = '';
+      phoneCCOther.classList.add('hidden');
+      waCCOther.classList.add('hidden');
+      setSameNumber(false);
+      deleteBtn.classList.add('hidden');
+      deleteBtn.onclick = null;
+    }
+
+    showScreen('form');
+    setTimeout(() => nameInput.focus(), 100);
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    const localPhone = digitsOnly(phoneInput.value.trim());
+    const phoneCode = getCC(phoneCC, phoneCCOther);
+    const phone = localPhone ? (phoneCode + localPhone) : '';
+
+    let wa;
+    if(sameNumber){
+      wa = phone;
+    }else{
+      const localWa = digitsOnly(waInput.value.trim());
+      const waCode = getCC(waCC, waCCOther);
+      wa = localWa ? (waCode + localWa) : '';
+    }
+
+    // ---- validation ----
+    if(!name){
+      formError.textContent = 'Please enter a contact name.';
+      formError.classList.add('show');
+      nameInput.focus();
+      return;
+    }
+    if(!phone && !wa){
+      formError.textContent = 'Please enter a phone number or a WhatsApp number (at least one).';
+      formError.classList.add('show');
+      phoneInput.focus();
+      return;
+    }
+    if(localPhone){
+      if(!phoneCode || phoneCode === '+other' || phoneCode === '+'){
+        formError.textContent = 'Please select a country code for the phone number.';
+        formError.classList.add('show');
+        phoneCC.focus();
+        return;
+      }
+      if(localPhone.length < 6){
+        formError.textContent = 'That phone number looks too short.';
+        formError.classList.add('show');
+        phoneInput.focus();
+        return;
+      }
+    }
+    if(!sameNumber && waInput.value.trim()){
+      const waCode = getCC(waCC, waCCOther);
+      if(!waCode || waCode === '+other' || waCode === '+'){
+        formError.textContent = 'Please select a country code for the WhatsApp number.';
+        formError.classList.add('show');
+        waCC.focus();
+        return;
+      }
+      if(digitsOnly(waInput.value).length < 6){
+        formError.textContent = 'That WhatsApp number looks too short.';
+        formError.classList.add('show');
+        waInput.focus();
+        return;
+      }
+    }
+
+    formError.classList.remove('show');
+
+    if(editingId){
+      const idx = contacts.findIndex(c => c.id === editingId);
+      contacts[idx] = { ...contacts[idx], name, phone, whatsapp: wa };
+    }else{
+      const newContact = { id: uid(), name, phone, whatsapp: wa };
+      contacts.push(newContact);
+      selectedId = newContact.id;
+      saveSelected(selectedId);
+    }
+
+    saveContacts(contacts);
+    showToast('Contact saved');
+    openList();
+  });
+
+  // ---------- Init ----------
+  renderMainContacts();
+  renderStatus();
+  showScreen('main');
+</script>
+
+</body>
+</html>
